@@ -35,7 +35,7 @@ optimization, and there may still be some lurking bugs.
 First, add this to your `Cargo.toml`:
 
 ```toml
-sharded-slab = "0.1.7"
+sharded-slab = "0.2.0"
 ```
 
 This crate provides two types, [`Slab`] and [`Pool`], which provide slightly

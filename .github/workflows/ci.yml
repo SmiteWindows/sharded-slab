@@ -4,11 +4,12 @@ on:
   push:
     branches: ["main"]
   pull_request:
+  workflow_dispatch:  
 
 env:
   RUSTFLAGS: -Dwarnings
   RUST_BACKTRACE: 1
-  MSRV: 1.42.0
+  MSRV: 1.93.0
 
 jobs:
   build:
@@ -18,7 +19,6 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
-          - i686-unknown-linux-musl
     steps:
       - uses: actions/checkout@master
       - name: Install toolchain

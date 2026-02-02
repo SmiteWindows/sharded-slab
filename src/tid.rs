@@ -1,17 +1,18 @@
 use crate::{
+    Pack,
     cfg::{self, CfgPrivate},
     page,
     sync::{
+        Mutex,
         atomic::{AtomicUsize, Ordering},
-        lazy_static, thread_local, Mutex,
     },
-    Pack,
 };
 use std::{
     cell::{Cell, UnsafeCell},
     collections::VecDeque,
     fmt,
     marker::PhantomData,
+    sync::OnceLock,
 };
 
 /// Uniquely identifies a thread.
@@ -29,14 +30,17 @@ struct Registry {
     free: Mutex<VecDeque<usize>>,
 }
 
-lazy_static! {
-    static ref REGISTRY: Registry = Registry {
+static REGISTRY: OnceLock<Registry> = OnceLock::new();
+
+#[inline]
+fn registry() -> &'static Registry {
+    REGISTRY.get_or_init(|| Registry {
         next: AtomicUsize::new(0),
         free: Mutex::new(VecDeque::new()),
-    };
+    })
 }
 
-thread_local! {
+std::thread_local! {
     static REGISTRATION: Registration = Registration::new();
 }
 
@@ -146,7 +150,7 @@ impl Registration {
 
     #[cold]
     fn register<C: cfg::Config>(&self) -> Tid<C> {
-        let id = REGISTRY
+        let id = registry()
             .free
             .lock()
             .ok()
@@ -158,7 +162,7 @@ impl Registration {
                 }
             })
             .unwrap_or_else(|| {
-                let id = REGISTRY.next.fetch_add(1, Ordering::AcqRel);
+                let id = registry().next.fetch_add(1, Ordering::AcqRel);
                 if id > Tid::<C>::BITS {
                     panic_in_drop!(
                         "creating a new thread ID ({}) would exceed the \
@@ -188,7 +192,7 @@ impl Drop for Registration {
         use std::sync::PoisonError;
 
         if let Some(id) = self.0.get() {
-            let mut free_list = REGISTRY.free.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut free_list = registry().free.lock().unwrap_or_else(PoisonError::into_inner);
             free_list.push_back(id);
         }
     }
