@@ -6,11 +6,11 @@
 //! [pool]: ../struct.Pool.html
 //! [`Slab`]: ../struct.Slab.html
 use crate::{
+    Pack, Shard,
     cfg::{self, CfgPrivate, DefaultConfig},
     clear::Clear,
     page, shard,
     tid::Tid,
-    Pack, Shard,
 };
 
 use std::{fmt, marker::PhantomData, sync::Arc};
@@ -1137,7 +1137,10 @@ where
                 shard.clear_after_release(self.key);
             } else {
                 test_println!("-> shard={:?} does not exist! THIS IS A BUG", shard_idx);
-                debug_assert!(std::thread::panicking(), "[internal error] tried to drop an `OwnedRef` to a slot on a shard that never existed!");
+                debug_assert!(
+                    std::thread::panicking(),
+                    "[internal error] tried to drop an `OwnedRef` to a slot on a shard that never existed!"
+                );
             }
         }
     }
@@ -1301,7 +1304,10 @@ where
                 shard.clear_after_release(self.key);
             } else {
                 test_println!("-> shard does not exist! THIS IS A BUG");
-                debug_assert!(std::thread::panicking(), "[internal error] tried to drop an `OwnedRefMut` to a slot on a shard that never existed!");
+                debug_assert!(
+                    std::thread::panicking(),
+                    "[internal error] tried to drop an `OwnedRefMut` to a slot on a shard that never existed!"
+                );
             }
         }
     }

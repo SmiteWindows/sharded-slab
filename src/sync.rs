@@ -64,8 +64,8 @@ mod inner {
 mod inner {
     #![allow(dead_code)]
     pub(crate) use std::{
-        sync::{atomic, Mutex},
-        thread::yield_now
+        sync::{Mutex, atomic},
+        thread::yield_now,
     };
 
     pub(crate) mod hint {

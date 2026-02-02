@@ -981,7 +981,10 @@ where
                 shard.clear_after_release(self.key)
             } else {
                 test_println!("-> shard={:?} does not exist! THIS IS A BUG", shard_idx);
-                debug_assert!(std::thread::panicking(), "[internal error] tried to drop an `OwnedEntry` to a slot on a shard that never existed!");
+                debug_assert!(
+                    std::thread::panicking(),
+                    "[internal error] tried to drop an `OwnedEntry` to a slot on a shard that never existed!"
+                );
             }
         }
     }

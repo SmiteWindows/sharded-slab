@@ -1,11 +1,11 @@
 use super::util::*;
-use crate::sync::alloc;
 use crate::Slab;
+use crate::sync::alloc;
 use loom::sync::{Condvar, Mutex};
 use loom::thread;
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
     Arc,
+    atomic::{AtomicBool, Ordering},
 };
 
 #[test]

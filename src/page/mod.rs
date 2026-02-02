@@ -1,7 +1,7 @@
+use crate::Pack;
 use crate::cfg::{self, CfgPrivate};
 use crate::clear::Clear;
 use crate::sync::UnsafeCell;
-use crate::Pack;
 
 pub(crate) mod slot;
 mod stack;

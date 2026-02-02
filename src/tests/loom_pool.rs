@@ -1,9 +1,9 @@
 use super::util::*;
-use crate::{clear::Clear, sync::alloc, Pack, Pool};
+use crate::{Pack, Pool, clear::Clear, sync::alloc};
 use loom::{
     sync::{
-        atomic::{AtomicBool, Ordering},
         Condvar, Mutex,
+        atomic::{AtomicBool, Ordering},
     },
     thread,
 };

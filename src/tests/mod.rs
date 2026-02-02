@@ -1,8 +1,7 @@
 mod idx {
     use crate::{
-        cfg,
+        Pack, Tid, cfg,
         page::{self, slot},
-        Pack, Tid,
     };
     use proptest::prelude::*;
 

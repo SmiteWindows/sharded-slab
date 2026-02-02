@@ -192,7 +192,10 @@ impl Drop for Registration {
         use std::sync::PoisonError;
 
         if let Some(id) = self.0.get() {
-            let mut free_list = registry().free.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut free_list = registry()
+                .free
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner);
             free_list.push_back(id);
         }
     }

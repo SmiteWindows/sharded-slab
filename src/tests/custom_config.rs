@@ -1,7 +1,7 @@
 //! Ensures that a custom config behaves as the default config, until limits are reached.
 //! Prevents regression after #80.
 
-use crate::{cfg::CfgPrivate, Config, Slab};
+use crate::{Config, Slab, cfg::CfgPrivate};
 
 struct CustomConfig;
 

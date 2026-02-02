@@ -1,9 +1,10 @@
 use super::FreeList;
 use crate::sync::{
+    UnsafeCell,
     atomic::{AtomicUsize, Ordering},
-    hint, UnsafeCell,
+    hint,
 };
-use crate::{cfg, clear::Clear, Pack, Tid};
+use crate::{Pack, Tid, cfg, clear::Clear};
 use std::{fmt, marker::PhantomData, mem, ptr, thread};
 
 pub(crate) struct Slot<T, C> {
@@ -243,7 +244,8 @@ where
         let next_gen = r#gen.advance();
         loop {
             let current_gen = LifecycleGen::from_packed(lifecycle).0;
-            test_println!("-> release_with; lifecycle={:#x}; expected_gen={:?}; current_gen={:?}; next_gen={:?};",
+            test_println!(
+                "-> release_with; lifecycle={:#x}; expected_gen={:?}; current_gen={:?}; next_gen={:?};",
                 lifecycle,
                 r#gen,
                 current_gen,
@@ -272,7 +274,11 @@ where
 
                     // Make sure that there are no outstanding references.
                     let refs = RefCount::<C>::from_packed(actual);
-                    test_println!("-> advanced r#gen; lifecycle={:#x}; refs={:?};", actual, refs);
+                    test_println!(
+                        "-> advanced r#gen; lifecycle={:#x}; refs={:?};",
+                        actual,
+                        refs
+                    );
                     if refs.value == 0 {
                         test_println!("-> ok to remove!");
                         // safety: we've modified the generation of this slot and any other thread
@@ -877,8 +883,16 @@ impl<T, C: cfg::Config> InitGuard<T, C> {
                 refs,
             );
 
-            debug_assert!(state == State::Marked || thread::panicking(), "state was not MARKED; someone else has removed the slot while we have exclusive access!\nactual={:?}", state);
-            debug_assert!(refs.value == 0 || thread::panicking(), "ref count was not 0; someone else has referenced the slot while we have exclusive access!\nactual={:?}", refs);
+            debug_assert!(
+                state == State::Marked || thread::panicking(),
+                "state was not MARKED; someone else has removed the slot while we have exclusive access!\nactual={:?}",
+                state
+            );
+            debug_assert!(
+                refs.value == 0 || thread::panicking(),
+                "ref count was not 0; someone else has referenced the slot while we have exclusive access!\nactual={:?}",
+                refs
+            );
 
             let new_lifecycle = LifecycleGen(self.generation()).pack(State::Removing as usize);
 
