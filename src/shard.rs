@@ -276,13 +276,12 @@ where
     C: cfg::Config,
 {
     pub(crate) fn new() -> Self {
-        let mut shards = Vec::with_capacity(C::MAX_SHARDS);
-        for _ in 0..C::MAX_SHARDS {
-            // XXX(eliza): T_T this could be avoided with maybeuninit or something...
-            shards.push(Ptr::null());
-        }
+        let shards = Box::<[Ptr<T, C>]>::new_zeroed_slice(C::MAX_SHARDS);
+
+        let shards = unsafe { shards.assume_init() };
+
         Self {
-            shards: shards.into(),
+            shards,
             max: AtomicUsize::new(0),
         }
     }
@@ -307,24 +306,22 @@ where
         );
         // It's okay for this to be relaxed. The value is only ever stored by
         // the thread that corresponds to the index, and we are that thread.
-        let shard = self.shards[idx].load(Relaxed).unwrap_or_else(|| {
-            let ptr = Box::into_raw(Box::new(alloc::Track::new(Shard::new(idx))));
-            test_println!("-> allocated new shard for index {} at {:p}", idx, ptr);
-            self.shards[idx].set(ptr);
-            let mut max = self.max.load(Acquire);
-            while max < idx {
-                match self.max.compare_exchange(max, idx, AcqRel, Acquire) {
-                    Ok(_) => break,
-                    Err(actual) => max = actual,
-                }
-            }
-            test_println!("-> highest index={}, prev={}", std::cmp::max(max, idx), max);
-            unsafe {
+        let shard = match self.shards[idx].load(Relaxed) {
+            Some(shard) => shard,
+            None => {
+                let ptr = Box::into_raw(Box::new(alloc::Track::new(Shard::new(idx))));
+                test_println!("-> allocated new shard for index {} at {:p}", idx, ptr);
+
+                self.shards[idx].set(ptr);
+
+                let _ = self.max.fetch_max(idx, AcqRel);
+
+                test_println!("-> highest index={}", idx);
+
                 // Safety: we just put it there!
-                &*ptr
+                unsafe { &*ptr }.get_ref()
             }
-            .get_ref()
-        });
+        };
         (tid, shard)
     }
 
@@ -338,22 +335,19 @@ where
 
 impl<T, C: cfg::Config> Drop for Array<T, C> {
     fn drop(&mut self) {
-        // XXX(eliza): this could be `with_mut` if we wanted to impl a wrapper for std atomics to change `get_mut` to `with_mut`...
         let max = self.max.load(Acquire);
-        for shard in &self.shards[0..=max] {
-            // XXX(eliza): this could be `with_mut` if we wanted to impl a wrapper for std atomics to change `get_mut` to `with_mut`...
-            let ptr = shard.0.load(Acquire);
-            if ptr.is_null() {
-                continue;
+
+        self.shards[0..=max].iter().for_each(|shard_ptr| {
+            let ptr = shard_ptr.0.load(Acquire);
+            if !ptr.is_null() {
+                unsafe {
+                    // Safety: this is the only place where these boxes are
+                    // deallocated, and we have exclusive access to the shard array,
+                    // because...we are dropping it...
+                    drop(Box::from_raw(ptr));
+                }
             }
-            let shard = unsafe {
-                // Safety: this is the only place where these boxes are
-                // deallocated, and we have exclusive access to the shard array,
-                // because...we are dropping it...
-                Box::from_raw(ptr)
-            };
-            drop(shard)
-        }
+        });
     }
 }
 
@@ -377,6 +371,7 @@ impl<T: fmt::Debug, C: cfg::Config> fmt::Debug for Array<T, C> {
 
 impl<T, C: cfg::Config> Ptr<T, C> {
     #[inline]
+    #[allow(dead_code)]
     fn null() -> Self {
         Self(AtomicPtr::new(ptr::null_mut()))
     }

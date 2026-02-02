@@ -2,7 +2,6 @@ use super::FreeList;
 use crate::sync::{
     UnsafeCell,
     atomic::{AtomicUsize, Ordering},
-    hint,
 };
 use crate::{Pack, Tid, cfg, clear::Clear};
 use std::{fmt, marker::PhantomData, mem, ptr, thread};
@@ -925,7 +924,7 @@ fn exponential_backoff(exp: &mut usize) {
 
     // Issue 2^exp pause instructions.
     for _ in 0..(1 << *exp) {
-        hint::spin_loop();
+        std::hint::spin_loop();
     }
 
     if *exp >= MAX_EXPONENT {

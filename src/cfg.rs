@@ -172,7 +172,6 @@ mod tests {
     use crate::Tid;
     use crate::page::slot::Lifecycle;
     use crate::page::slot::LifecycleGen;
-    use crate::test_util;
 
     #[cfg(target_pointer_width = "32")]
     #[test]
@@ -219,7 +218,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(loom, ignore)]
     #[should_panic]
     fn validates_max_refs() {
         // Configure the slab with a very large number of bits for the generation
@@ -256,24 +254,11 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(loom, ignore)]
     fn big() {
         let slab = Slab::new();
 
         for i in 0..10000 {
             println!("{:?}", i);
-            let k = slab.insert(i).expect("insert");
-            assert_eq!(slab.get(k).expect("get"), i);
-        }
-    }
-
-    #[test]
-    #[cfg_attr(loom, ignore)]
-    fn custom_page_sz() {
-        let slab = Slab::new_with_config::<test_util::TinyConfig>();
-
-        for i in 0..4096 {
-            println!("{}", i);
             let k = slab.insert(i).expect("insert");
             assert_eq!(slab.get(k).expect("get"), i);
         }

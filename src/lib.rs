@@ -13,7 +13,7 @@
 //! First, add this to your `Cargo.toml`:
 //!
 //! ```toml
-//! sharded-slab = "0.1.1"
+//! sharded-slab = "0.2.0"
 //! ```
 //!
 //! This crate provides two  types, [`Slab`] and [`Pool`], which provide
@@ -198,7 +198,7 @@
 //! See [this page](crate::implementation) for details on this crate's design
 //! and implementation.
 //!
-#![doc(html_root_url = "https://docs.rs/sharded-slab/0.1.4")]
+#![doc(html_root_url = "https://docs.rs/sharded-slab/0.2.0")]
 #![warn(missing_debug_implementations, missing_docs)]
 #![cfg_attr(docsrs, warn(rustdoc::broken_intra_doc_links))]
 #[macro_use]
@@ -1115,9 +1115,6 @@ impl<C: cfg::Config> Pack<C> for () {
         unreachable!()
     }
 }
-
-#[cfg(test)]
-pub(crate) use self::tests::util as test_util;
 
 #[cfg(test)]
 mod tests;

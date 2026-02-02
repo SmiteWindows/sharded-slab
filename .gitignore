@@ -1,3 +1,10 @@
 target
 Cargo.lock
+flake.nix
+"flake.lock
+.envrc
+.clog.toml
+.cargo
+.github
 .direnv
+bin

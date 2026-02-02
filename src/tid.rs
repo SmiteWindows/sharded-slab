@@ -200,7 +200,7 @@ impl Drop for Registration {
     }
 }
 
-#[cfg(all(test, not(loom)))]
+#[cfg(test)]
 pub(crate) fn with<R>(tid: usize, f: impl FnOnce() -> R) -> R {
     struct Guard(Option<usize>);
 
