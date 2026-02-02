@@ -181,12 +181,11 @@ impl Registration {
     }
 }
 
-// Reusing thread IDs doesn't work under loom, since this `Drop` impl results in
-// an access to a `loom` lazy_static while the test is shutting down, which
-// panics. T_T
-// Just skip TID reuse and use loom's lazy_static macro to ensure we have a
-// clean initial TID on every iteration, instead.
-#[cfg(not(all(loom, any(feature = "loom", test))))]
+// Reusing thread IDs doesn't work under loom, since these `Drop` impls result in
+// accesses to loom synchronization primitives while the test is shutting down, which
+// panics.
+// For loom tests, we skip TID reuse to avoid accessing loom's internal state during cleanup.
+// #[cfg(not(all(loom, any(feature = "loom", test))))]
 impl Drop for Registration {
     fn drop(&mut self) {
         use std::sync::PoisonError;
