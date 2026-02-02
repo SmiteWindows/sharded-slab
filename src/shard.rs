@@ -206,7 +206,7 @@ where
         crate::sync::atomic::fence(crate::sync::atomic::Ordering::Acquire);
 
         let tid = Tid::<C>::current();
-        
+
         if tid.is_poisoned() {
             self.clear_remote(idx);
         } else {
