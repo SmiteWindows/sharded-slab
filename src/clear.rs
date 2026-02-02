@@ -38,14 +38,14 @@ where
 {
     #[inline]
     fn clear(&mut self) {
-        self.deref_mut().clear()
+        self.deref_mut().clear();
     }
 }
 
 impl<T> Clear for Vec<T> {
     #[inline]
     fn clear(&mut self) {
-        Vec::clear(self)
+        Vec::clear(self);
     }
 }
 
@@ -56,7 +56,7 @@ where
 {
     #[inline]
     fn clear(&mut self) {
-        collections::HashMap::clear(self)
+        collections::HashMap::clear(self);
     }
 }
 
@@ -67,27 +67,27 @@ where
 {
     #[inline]
     fn clear(&mut self) {
-        collections::HashSet::clear(self)
+        collections::HashSet::clear(self);
     }
 }
 
 impl Clear for String {
     #[inline]
     fn clear(&mut self) {
-        String::clear(self)
+        String::clear(self);
     }
 }
 
 impl<T: Clear> Clear for sync::Mutex<T> {
     #[inline]
     fn clear(&mut self) {
-        self.get_mut().unwrap().clear();
+        self.get_mut().expect("mutex poisoned").clear();
     }
 }
 
 impl<T: Clear> Clear for sync::RwLock<T> {
     #[inline]
     fn clear(&mut self) {
-        self.write().unwrap().clear();
+        self.write().expect("rwlock poisoned").clear();
     }
 }

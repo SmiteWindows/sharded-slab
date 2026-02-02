@@ -54,7 +54,7 @@ impl<C: cfg::Config> TransferStack<C> {
 
 impl<C: cfg::Config> super::FreeList<C> for TransferStack<C> {
     fn push<T>(&self, new_head: usize, slot: &super::Slot<T, C>) {
-        self.push(new_head, |next| slot.set_next(next))
+        self.push(new_head, |next| slot.set_next(next));
     }
 }
 

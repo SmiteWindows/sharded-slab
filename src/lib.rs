@@ -375,11 +375,13 @@ where
 
 impl<T> Slab<T> {
     /// Returns a new slab with the default configuration parameters.
+    #[must_use]
     pub fn new() -> Self {
         Self::new_with_config()
     }
 
     /// Returns a new slab with the provided configuration parameters.
+    #[must_use]
     pub fn new_with_config<C: cfg::Config>() -> Slab<T, C> {
         C::validate();
         Slab {
@@ -519,9 +521,9 @@ impl<T, C: cfg::Config> Slab<T, C> {
         test_println!("rm_deferred {:?}", tid);
         let shard = self.shards.get(tid.as_usize());
         if tid.is_current() {
-            shard.map(|shard| shard.remove_local(idx)).unwrap_or(false)
+            shard.is_some_and(|shard| shard.remove_local(idx))
         } else {
-            shard.map(|shard| shard.remove_remote(idx)).unwrap_or(false)
+            shard.is_some_and(|shard| shard.remove_remote(idx))
         }
     }
 
@@ -613,7 +615,7 @@ impl<T, C: cfg::Config> Slab<T, C> {
         let shard = self.shards.get(tid.as_usize())?;
         shard.with_slot(key, |slot| {
             let inner = slot.get(C::unpack_gen(key))?;
-            let value = ptr::NonNull::from(slot.value().as_ref().unwrap());
+            let value = ptr::NonNull::from(slot.value().as_ref().expect("slot value is None"));
             Some(Entry {
                 inner,
                 value,
@@ -711,7 +713,7 @@ impl<T, C: cfg::Config> Slab<T, C> {
         let shard = self.shards.get(tid.as_usize())?;
         shard.with_slot(key, |slot| {
             let inner = slot.get(C::unpack_gen(key))?;
-            let value = ptr::NonNull::from(slot.value().as_ref().unwrap());
+            let value = ptr::NonNull::from(slot.value().as_ref().expect("slot value is None"));
             Some(OwnedEntry {
                 inner,
                 value,
@@ -785,6 +787,7 @@ unsafe impl<T: Sync, C: cfg::Config> Sync for Slab<T, C> {}
 
 impl<T, C: cfg::Config> Entry<'_, T, C> {
     /// Returns the key used to access the guard.
+    #[must_use]
     pub fn key(&self) -> usize {
         self.key
     }
@@ -820,7 +823,7 @@ impl<T, C: cfg::Config> Drop for Entry<'_, T, C> {
             self.inner.release()
         };
         if should_remove {
-            self.shard.clear_after_release(self.key)
+            self.shard.clear_after_release(self.key);
         }
     }
 }
@@ -899,7 +902,7 @@ impl<T, C: cfg::Config> VacantEntry<'_, T, C> {
         debug_assert!(
             !_released,
             "removing a value before it was inserted should be a no-op"
-        )
+        );
     }
 
     /// Return the integer index at which this entry will be inserted.
@@ -923,6 +926,8 @@ impl<T, C: cfg::Config> VacantEntry<'_, T, C> {
     /// assert_eq!(hello, slab.get(hello).unwrap().0);
     /// assert_eq!("hello", slab.get(hello).unwrap().1);
     /// ```
+    ///
+    #[must_use]
     pub fn key(&self) -> usize {
         self.key
     }
@@ -933,6 +938,7 @@ impl<T, C> OwnedEntry<T, C>
 where
     C: cfg::Config,
 {
+    #[must_use]
     /// Returns the key used to access this guard
     pub fn key(&self) -> usize {
         self.key
@@ -978,7 +984,7 @@ where
             let shard_idx = Tid::<C>::from_packed(self.key);
             test_println!("-> shard={:?}", shard_idx);
             if let Some(shard) = self.slab.shards.get(shard_idx.as_usize()) {
-                shard.clear_after_release(self.key)
+                shard.clear_after_release(self.key);
             } else {
                 test_println!("-> shard={:?} does not exist! THIS IS A BUG", shard_idx);
                 debug_assert!(

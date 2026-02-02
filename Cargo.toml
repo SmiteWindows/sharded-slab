@@ -48,3 +48,21 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(slab_print)'] }
+unsafe_code = "warn"
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+
+[lints.rustdoc]
+all = "warn"
+
+[lints.clippy]
+# pedantic = { level = "warn", priority = -1 }
+# nursery = { level = "warn", priority = -1 }
+# cargo = { level = "warn", priority = -1 }
+
+dbg_macro = "warn"
+todo = "warn"
+unwrap_used = "warn"
+
+# As of right now, ls_types has no prelude
+wildcard_imports = "warn"

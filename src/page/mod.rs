@@ -106,7 +106,7 @@ impl Local {
     fn set_head(&self, new_head: usize) {
         self.head.with_mut(|head| unsafe {
             *head = new_head;
-        })
+        });
     }
 }
 
@@ -353,7 +353,7 @@ impl fmt::Debug for Local {
         self.head.with(|head| {
             let head = unsafe { *head };
             f.debug_struct("Local")
-                .field("head", &format_args!("{:#0x}", head))
+                .field("head", &format_args!("{head:#0x}"))
                 .finish()
         })
     }

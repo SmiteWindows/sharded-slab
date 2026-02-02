@@ -100,7 +100,7 @@ where
     pub(super) fn set_next(&self, next: usize) {
         self.next.with_mut(|n| unsafe {
             (*n) = next;
-        })
+        });
     }
 
     #[inline(always)]
@@ -154,7 +154,7 @@ where
                     test_println!("-> get: retrying; lifecycle={:#x};", actual);
                     lifecycle = actual;
                 }
-            };
+            }
         }
     }
 
@@ -195,7 +195,7 @@ where
                     break;
                 }
                 State::Present => {}
-            };
+            }
 
             // Set the new state to `MARKED`.
             let new_lifecycle = Lifecycle::<C>::MARKED.pack(lifecycle);
@@ -544,7 +544,7 @@ impl<T, C: cfg::Config> fmt::Debug for Slot<T, C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let lifecycle = self.lifecycle.load(Ordering::Relaxed);
         f.debug_struct("Slot")
-            .field("lifecycle", &format_args!("{:#x}", lifecycle))
+            .field("lifecycle", &format_args!("{lifecycle:#x}"))
             .field("state", &Lifecycle::<C>::from_packed(lifecycle).state)
             .field("r#gen", &LifecycleGen::<C>::from_packed(lifecycle).0)
             .field("refs", &RefCount::<C>::from_packed(lifecycle))
@@ -884,13 +884,11 @@ impl<T, C: cfg::Config> InitGuard<T, C> {
 
             debug_assert!(
                 state == State::Marked || thread::panicking(),
-                "state was not MARKED; someone else has removed the slot while we have exclusive access!\nactual={:?}",
-                state
+                "state was not MARKED; someone else has removed the slot while we have exclusive access!\nactual={state:?}"
             );
             debug_assert!(
                 refs.value == 0 || thread::panicking(),
-                "ref count was not 0; someone else has referenced the slot while we have exclusive access!\nactual={:?}",
-                refs
+                "ref count was not 0; someone else has referenced the slot while we have exclusive access!\nactual={refs:?}"
             );
 
             let new_lifecycle = LifecycleGen(self.generation()).pack(State::Removing as usize);

@@ -18,7 +18,7 @@ impl<'a, T, C: cfg::Config> Iterator for UniqueIter<'a, T, C> {
         test_println!("UniqueIter::next");
         loop {
             test_println!("-> try next slot");
-            if let Some(item) = self.slots.as_mut().and_then(|slots| slots.next()) {
+            if let Some(item) = self.slots.as_mut().and_then(std::iter::Iterator::next) {
                 test_println!("-> found an item!");
                 return Some(item);
             }

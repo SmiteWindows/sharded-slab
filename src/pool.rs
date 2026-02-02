@@ -383,11 +383,13 @@ where
     T: Clear + Default,
 {
     /// Returns a new `Pool` with the default configuration parameters.
+    #[must_use]
     pub fn new() -> Self {
         Self::new_with_config()
     }
 
     /// Returns a new `Pool` with the provided configuration parameters.
+    #[must_use]
     pub fn new_with_config<C: cfg::Config>() -> Pool<T, C> {
         C::validate();
         Pool {
@@ -822,13 +824,9 @@ where
 
         let shard = self.shards.get(tid.as_usize());
         if tid.is_current() {
-            shard
-                .map(|shard| shard.mark_clear_local(key))
-                .unwrap_or(false)
+            shard.is_some_and(|shard| shard.mark_clear_local(key))
         } else {
-            shard
-                .map(|shard| shard.mark_clear_remote(key))
-                .unwrap_or(false)
+            shard.is_some_and(|shard| shard.mark_clear_remote(key))
         }
     }
 }
@@ -876,6 +874,7 @@ where
     C: cfg::Config,
 {
     /// Returns the key used to access this guard
+    #[must_use]
     pub fn key(&self) -> usize {
         self.key
     }
@@ -955,6 +954,7 @@ where
     C: cfg::Config,
 {
     /// Returns the key used to access the guard.
+    #[must_use]
     pub fn key(&self) -> usize {
         self.key
     }
@@ -994,6 +994,7 @@ where
     /// // We can still access the value immutably through the downgraded guard.
     /// assert_eq!(guard, String::from("Hello"));
     /// ```
+    #[must_use]
     pub fn downgrade(mut self) -> Ref<'a, T, C> {
         let inner = unsafe { self.inner.downgrade() };
         Ref {
@@ -1086,6 +1087,7 @@ where
     C: cfg::Config,
 {
     /// Returns the key used to access this guard
+    #[must_use]
     pub fn key(&self) -> usize {
         self.key
     }
@@ -1188,6 +1190,7 @@ where
     C: cfg::Config,
 {
     /// Returns the key used to access this guard
+    #[must_use]
     pub fn key(&self) -> usize {
         self.key
     }
@@ -1227,6 +1230,7 @@ where
     /// // We can still access the value immutably through the downgraded guard.
     /// assert_eq!(guard, String::from("Hello"));
     /// ```
+    #[must_use]
     pub fn downgrade(mut self) -> OwnedRef<T, C> {
         let inner = unsafe { self.inner.downgrade() };
         OwnedRef {

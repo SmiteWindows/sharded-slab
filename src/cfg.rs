@@ -126,7 +126,7 @@ pub(crate) struct DebugConfig<C: Config> {
 pub(crate) const WIDTH: usize = std::mem::size_of::<usize>() * 8;
 
 pub(crate) const fn next_pow2(n: usize) -> usize {
-    let pow2 = n.count_ones() == 1;
+    let pow2 = n.is_power_of_two();
     let zeros = n.leading_zeros();
     1 << (WIDTH - zeros as usize - pow2 as usize)
 }
