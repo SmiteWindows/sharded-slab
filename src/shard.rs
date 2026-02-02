@@ -204,16 +204,23 @@ where
 
     pub(crate) fn clear_after_release(&self, idx: usize) {
         crate::sync::atomic::fence(crate::sync::atomic::Ordering::Acquire);
-        let tid = Tid::<C>::current().as_usize();
-        test_println!(
-            "-> clear_after_release; self.tid={:?}; current.tid={:?};",
-            tid,
-            self.tid
-        );
-        if tid == self.tid {
-            self.clear_local(idx);
-        } else {
+
+        let tid = Tid::<C>::current();
+        
+        if tid.is_poisoned() {
             self.clear_remote(idx);
+        } else {
+            let tid_usize = tid.as_usize();
+            test_println!(
+                "-> clear_after_release; self.tid={:?}; current.tid={:?};",
+                tid_usize,
+                self.tid
+            );
+            if tid_usize == self.tid {
+                self.clear_local(idx);
+            } else {
+                self.clear_remote(idx);
+            }
         }
     }
 
