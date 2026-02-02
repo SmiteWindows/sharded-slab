@@ -424,8 +424,8 @@ impl<T, C: cfg::Config> Slab<T, C> {
         let mut value = Some(value);
         shard
             .init_with(|idx, slot| {
-                let gen = slot.insert(&mut value)?;
-                Some(gen.pack(idx))
+                let r#gen = slot.insert(&mut value)?;
+                Some(r#gen.pack(idx))
             })
             .map(|idx| tid.pack(idx))
     }

@@ -453,8 +453,8 @@ where
         test_println!("pool: create {:?}", tid);
         let (key, inner) = shard.init_with(|idx, slot| {
             let guard = slot.init()?;
-            let gen = guard.generation();
-            Some((gen.pack(idx), guard))
+            let r#gen = guard.generation();
+            Some((r#gen.pack(idx), guard))
         })?;
         Some(RefMut {
             inner,
@@ -621,8 +621,8 @@ where
         test_println!("pool: create_owned {:?}", tid);
         let (inner, key) = shard.init_with(|idx, slot| {
             let inner = slot.init()?;
-            let gen = inner.generation();
-            Some((inner, tid.pack(gen.pack(idx))))
+            let r#gen = inner.generation();
+            Some((inner, tid.pack(r#gen.pack(idx))))
         })?;
         Some(OwnedRefMut {
             inner,
